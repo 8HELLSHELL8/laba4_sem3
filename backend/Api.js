@@ -5,9 +5,6 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 const crypto = require('crypto');
-const https = require('https');
-const fs = require('fs');
-const path = require('path'); 
 require('dotenv').config();
 
 const app = express();
@@ -28,7 +25,7 @@ const pool = new Pool({
 
 
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://vashdomen.com' : 'https://localhost:3000',
+  origin: ['http://frontend:80', 'http://localhost:3000'],
   credentials: true,
 }));
 app.use(express.json());
@@ -132,25 +129,38 @@ app.post('/api/login', async (req, res) => {
     }
 
     console.log('User data from database during login:', user);
+    
+    const updateQuery = `
+      UPDATE users 
+      SET 
+        current_token = $1,
+        last_login = CURRENT_TIMESTAMP
+      WHERE id = $2
+    `;
+    
     const tokenPayload = {
       userId: user.id,
       name: user.name,
       role: user.role,
     };
-    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '30d' });
-    await query('UPDATE users SET current_token = $1 WHERE id = $2', [token, user.id]);
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1d' });
+    
+    await query(updateQuery, [token, user.id]);
+
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: 15 * 60 * 1000,
     });
+    
     const csrfToken = crypto.randomBytes(32).toString('hex');
     res.cookie('_csrfToken', csrfToken, {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge:  60 * 60 * 1000,
     });
+    
     console.log('Login successful, JWT and CSRF token cookies set.');
     res.json({
       user: {
@@ -342,55 +352,7 @@ app.delete('/api/items/:id', authenticateToken, verifyCsrfToken, async (req, res
   }
 });
 
-const useHttps = true; // Предполагаем, что для продакшена это всегда true
 
-if (useHttps) {
-  try {
-    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-    // Пути к файлам сертификатов от Let's Encrypt
-    // Замените 'вашдомен.com' на ваше реальное доменное имя, для которого выдан сертификат
-    const letsEncryptDomain = process.env.YOUR_DOMAIN_NAME || 'вашдомен.com'; // Лучше брать из переменной окружения
-    const privateKeyPath = `/etc/letsencrypt/live/${letsEncryptDomain}/privkey.pem`;
-    const certificatePath = `/etc/letsencrypt/live/${letsEncryptDomain}/fullchain.pem`; // Используйте fullchain.pem для cert
-
-    // Опционально: Если вы хотите использовать ca-сертификат отдельно (обычно не требуется с fullchain.pem)
-    // const caPath = `/etc/letsencrypt/live/${letsEncryptDomain}/chain.pem`;
-    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
-
-    if (!fs.existsSync(privateKeyPath) || !fs.existsSync(certificatePath)) {
-      console.error('Ошибка: Файлы сертификата или приватного ключа Let\'s Encrypt не найдены. Проверьте пути:');
-      console.error(`- Ключ: ${privateKeyPath}`);
-      console.error(`- Сертификат: ${certificatePath}`);
-      console.error('Убедитесь, что Certbot настроен правильно и сертификаты существуют.');
-      console.log('Запуск HTTP сервера в качестве запасного варианта (НЕ ДЛЯ ПРОДА!)');
-      app.listen(port, () => {
-        console.log(`HTTP Server (fallback) is running on http://localhost:${port}`);
-      });
-    } else {
-      const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
-      const certificate = fs.readFileSync(certificatePath, 'utf8');
-      // const ca = fs.existsSync(caPath) ? fs.readFileSync(caPath, 'utf8') : undefined; // Опционально
-
-      // --- ИЗМЕНЕНИЕ В CREDENTIALS ---
-      // Если ca используется, добавьте его: const credentials = { key: privateKey, cert: certificate, ca: ca };
-      const credentials = { key: privateKey, cert: certificate };
-      // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-
-      const httpsServer = https.createServer(credentials, app);
-
-      httpsServer.listen(port, () => {
-        console.log(`HTTPS Server is running on https://${letsEncryptDomain}:${port}`);
-      });
-    }
-  } catch (err) {
-    console.error('Критическая ошибка при настройке HTTPS сервера:', err);
-    console.log('Попытка запуска HTTP сервера');
-    app.listen(port, () => {
-      console.log(`HTTP Server (fallback) is running on http://localhost:${port}`);
-    });
-  }
-} else {
-  app.listen(port, () => {
-    console.log(`HTTP Server is running on http://localhost:${port}`);
-  });
-}
+app.listen(port, () => {
+  console.log(`HTTP Server is running on http://localhost:${port}`);
+});

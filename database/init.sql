@@ -1,4 +1,3 @@
--- Сначала создаём таблицы без зависимостей
 CREATE TABLE IF NOT EXISTS device_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR(63) NOT NULL,
@@ -16,13 +15,18 @@ CREATE TABLE IF NOT EXISTS locations (
     description TEXT
 );
 
+CREATE TABLE IF NOT EXISTS access_level (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(31) NOT NULL UNIQUE,
+    description TEXT
+);
+
 CREATE TABLE IF NOT EXISTS roles (
     id SERIAL PRIMARY KEY,
     name VARCHAR(31) NOT NULL UNIQUE,
     description TEXT
 );
 
--- Затем таблицы, которые ссылаются на созданные выше
 CREATE TABLE IF NOT EXISTS devices (
     id SERIAL PRIMARY KEY,
     name VARCHAR(63) NOT NULL,
@@ -33,18 +37,23 @@ CREATE TABLE IF NOT EXISTS devices (
 
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(63) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role INT REFERENCES roles NOT NULL,
-    current_token VARCHAR(255)
+    acc_lvl INT REFERENCES access_level NOT NULL,
+    current_token VARCHAR(255),
+    last_login TIMESTAMP
 );
 
--- Вставляем данные в правильном порядке:
--- 1. Сначала справочники
 INSERT INTO device_types (name) VALUES 
 ('Camera'),
 ('Detector'),
 ('Other');
+
+INSERT INTO access_level (name) VALUES 
+('strict'),
+('full'),
+('dev');
 
 INSERT INTO device_statuses (name) VALUES 
 ('Active'),
@@ -66,13 +75,11 @@ INSERT INTO roles (name, description) VALUES
 ('manager', 'Менеджер оборудования с ограниченными правами'),
 ('user', 'Обычный пользователь с базовыми правами');
 
--- 2. Затем пользователей (они ссылаются на roles)
-INSERT INTO users (name, password, role) VALUES
-('admin', '$2b$10$Xcu/ii7L2leYyBbhTEZjuuUqCFxSQY9eu2qQfJVdDaLPRDXyZHGbW', 1),
-('manager', '$2b$10$AQwpDxZB7J/zCh2wIN.7vuVbFUXcnmUMb.icCknFyRxgpckIxlBbe', 2),
-('user1', '$2b$10$87q0wyx1aZd4aYujDUtTPuazrIXKQg2bq29ltIQEnBfudOGb38F7G', 3);
+INSERT INTO users (name, password, role, acc_lvl) VALUES
+('admin', '$2b$10$Xcu/ii7L2leYyBbhTEZjuuUqCFxSQY9eu2qQfJVdDaLPRDXyZHGbW', 1, 3),
+('manager', '$2b$10$AQwpDxZB7J/zCh2wIN.7vuVbFUXcnmUMb.icCknFyRxgpckIxlBbe', 2, 2),
+('user1', '$2b$10$87q0wyx1aZd4aYujDUtTPuazrIXKQg2bq29ltIQEnBfudOGb38F7G', 3, 1);
 
--- 3. Устройства (они ссылаются на device_types, locations и device_statuses)
 INSERT INTO devices (name, type, location_id, status) VALUES
 ('Device A', 1, 1, 1),
 ('Device B', 2, 2, 2),
@@ -80,3 +87,14 @@ INSERT INTO devices (name, type, location_id, status) VALUES
 ('Device D', 2, 1, 2),
 ('Server Rack 1', 1, 1, 1),
 ('Network Switch A', 2, 2, 1);
+
+CREATE OR REPLACE FUNCTION clear_expired_tokens()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.last_login IS NOT NULL AND 
+       EXTRACT(EPOCH FROM (NOW() - NEW.last_login)) > 15 * 60 THEN
+        NEW.current_token := NULL;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;

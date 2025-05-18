@@ -8,7 +8,6 @@ import '../css/AuthPage.css';
 const AuthPage = ({ updateAuthState }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -30,7 +29,7 @@ const AuthPage = ({ updateAuthState }) => {
 
     try {
       const response = await axios.post(
-        'https://217.71.129.139:5497/api/login', 
+        'http://localhost:5000/api/login', 
         { name: username, password },
         {
           withCredentials: true, 
@@ -93,21 +92,7 @@ const AuthPage = ({ updateAuthState }) => {
             />
           </div>
 
-          <div className="form-options">
-            <label className="checkbox-container">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <span className="checkmark"></span>
-              Remember me
-            </label>
-
-            <a href="/forgot-password" className="forgot-password">
-              Forget password?
-            </a>
-          </div>
+          
 
           <button
             type="submit"
@@ -119,7 +104,7 @@ const AuthPage = ({ updateAuthState }) => {
         </form>
 
         <div className="auth-footer">
-          No account? <a href="/register">Register</a>
+          No account? <a> lol go cry then</a>
         </div>
       </div>
     </div>

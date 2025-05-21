@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import '../css/Detail.css';
@@ -18,6 +18,8 @@ const Detail = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
+
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     const fetchDeviceData = async () => {
         setIsLoading(true);
@@ -49,6 +51,8 @@ const Detail = () => {
             setIsLoading(false);
         }
     }, [id, fetchDeviceData]);
+
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     const handleDelete = async () => {
         if (window.confirm(`Are you sure you want to delete the device "${deviceData?.name || name}"?`)) {

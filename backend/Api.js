@@ -25,7 +25,8 @@ const pool = new Pool({
 
 
 app.use(cors({
-  origin: ['http://frontend:80', 'http://localhost:3000'],
+  origin: '*',
+  //origin: ['http://frontend:80', 'http://localhost:3000'],
   credentials: true,
 }));
 app.use(express.json());

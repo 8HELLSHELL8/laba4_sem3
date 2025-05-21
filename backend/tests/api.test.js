@@ -3,7 +3,6 @@ const { app, server } = require('../Api');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-// Мокируем модуль 'pg'
 const mockQuery = jest.fn();
 jest.mock('pg', () => {
   const mPool = {
@@ -12,43 +11,37 @@ jest.mock('pg', () => {
       query: (...args) => mockQuery(...args),
       release: jest.fn(),
     }),
-    // Добавьте другие методы, если ваше приложение их использует напрямую
   };
   return { Pool: jest.fn(() => mPool) };
 });
 
-// Хелпер для генерации JWT токена для тестов
 const generateTestToken = (userId, name, role) => {
   return jwt.sign({ userId, name, role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
 describe('API Endpoints', () => {
-  let agent; // Для сохранения cookie между запросами
+  let agent; 
   let testUser;
   let testToken;
   let csrfToken;
 
   beforeAll(() => {
-    agent = request.agent(app); // Создаем agent для автоматической обработки cookie
+    agent = request.agent(app); 
     testUser = {
       id: 1,
       name: 'testuser',
       role: 'user',
-      password: 'hashedpassword', // Предположим, что это хешированный пароль
+      password: 'hashedpassword', 
     };
-    // Токен, который будет в базе данных (current_token)
     testToken = generateTestToken(testUser.id, testUser.name, testUser.role);
   });
 
   afterAll(async () => {
-    await new Promise(resolve => server.close(resolve)); // Закрываем сервер после всех тестов
-    // Или просто server.close(); если close() не возвращает Promise или не принимает callback
-    // await close(); // Если вы экспортировали функцию close, которая корректно закрывает сервер
+    await new Promise(resolve => server.close(resolve)); 
   });
 
   beforeEach(() => {
-    mockQuery.mockReset(); // Сбрасываем мок перед каждым тестом
-    // Настройка мока по умолчанию (можно переопределить в каждом тесте)
+    mockQuery.mockReset(); 
     mockQuery.mockResolvedValue({ rows: [], rowCount: 0 });
   });
 
@@ -58,11 +51,10 @@ describe('API Endpoints', () => {
         .mockResolvedValueOnce({ rows: [testUser], rowCount: 1 }) // SELECT user
         .mockResolvedValueOnce({ rows: [], rowCount: 1 });      // UPDATE users SET current_token
 
-      // Мокируем bcrypt.compare для успешного сравнения паролей
       const bcrypt = require('bcrypt');
       jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(true);
 
-      const res = await agent // Используем agent
+      const res = await agent 
         .post('/api/login')
         .send({ name: 'testuser', password: 'password123' });
 
@@ -74,12 +66,11 @@ describe('API Endpoints', () => {
           expect.stringMatching(/_csrfToken=/),
         ])
       );
-      // Сохраняем CSRF токен из cookie для последующих запросов
       const csrfCookie = res.headers['set-cookie'].find(cookie => cookie.startsWith('_csrfToken='));
       if (csrfCookie) {
         csrfToken = csrfCookie.split(';')[0].split('=')[1];
       }
-      bcrypt.compare.mockRestore(); // Восстанавливаем оригинальную функцию
+      bcrypt.compare.mockRestore(); 
     });
 
     it('POST /api/login - invalid credentials (user not found)', async () => {
@@ -97,7 +88,7 @@ describe('API Endpoints', () => {
       mockQuery.mockResolvedValueOnce({ rows: [testUser], rowCount: 1 }); // SELECT user
 
       const bcrypt = require('bcrypt');
-      jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(false); // Пароль не совпадает
+      jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(false); 
 
       const res = await request(app)
         .post('/api/login')
@@ -113,7 +104,6 @@ describe('API Endpoints', () => {
     let userCsrfToken;
 
     beforeAll(async () => {
-      // Логинимся один раз для получения валидных cookie для этой группы тестов
       authenticatedAgent = request.agent(app);
       mockQuery
         .mockResolvedValueOnce({ rows: [testUser], rowCount: 1 }) // SELECT user for login
@@ -137,7 +127,7 @@ describe('API Endpoints', () => {
       const loggedInJwtCookie = authenticatedAgent.jar.getCookie('jwt', { path: '/' });
       const currentTokenValue = loggedInJwtCookie ? loggedInJwtCookie.value : null;
 
-      mockQuery.mockResolvedValueOnce({ // Для authenticateToken (SELECT user by id and current_token)
+      mockQuery.mockResolvedValueOnce({ 
          rows: [{ ...testUser, current_token: currentTokenValue }],
          rowCount: 1
       });
@@ -150,7 +140,7 @@ describe('API Endpoints', () => {
     });
 
     it('GET /api/protected - fail without token', async () => {
-      const res = await request(app).get('/api/protected'); // Новый запрос без cookie
+      const res = await request(app).get('/api/protected'); 
       expect(res.statusCode).toEqual(401);
     });
   });
@@ -165,10 +155,10 @@ describe('API Endpoints', () => {
 
     beforeAll(async () => {
       authenticatedAgentItems = request.agent(app);
-      mockQuery.mockReset(); // Сброс перед этой серией
+      mockQuery.mockReset(); 
       mockQuery
-        .mockResolvedValueOnce({ rows: [testUser], rowCount: 1 }) // login - select user
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 });      // login - update token
+        .mockResolvedValueOnce({ rows: [testUser], rowCount: 1 }) 
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 });      
       const bcrypt = require('bcrypt');
       jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(true);
 
@@ -224,7 +214,7 @@ describe('API Endpoints', () => {
       const res = await authenticatedAgentItems.get('/api/items');
       expect(res.statusCode).toEqual(200);
       expect(res.body).toBeInstanceOf(Array);
-      expect(res.body.length).toBeGreaterThanOrEqual(0); // Может быть 0, если ничего не добавлено
+      expect(res.body.length).toBeGreaterThanOrEqual(0); 
       if (res.body.length > 0) {
         expect(res.body[0]).toHaveProperty('name', testItem.name);
       }

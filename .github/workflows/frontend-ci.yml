@@ -46,5 +46,7 @@ jobs:
             cd /root/laba4/frontend # Путь к проекту на сервере
             git pull origin main
             docker-compose build
-            docker-compose down
+            docker stop server || true  # Stop the container named 'server', ignore error if it doesn't exist
+            docker rm server || true    # Remove the container named 'server', ignore error if it doesn't exist
+            docker-compose down --remove-orphans # Ensure all services defined in compose file are down and remove orphans
             docker-compose up -d

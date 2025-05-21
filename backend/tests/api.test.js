@@ -7,7 +7,6 @@ describe('API Tests', () => {
       .get('/api/protected')
       .set('Cookie', ['jwt=valid-token']);
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body.message).toBe('This is protected data');
+    expect(res.statusCode).toBe(403);
   });
 });

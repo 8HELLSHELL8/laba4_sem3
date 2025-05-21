@@ -35,13 +35,25 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }} 
-          key: ${{ secrets.SSH_PRIVATE_KEY }} 
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /root/laba4/frontend 
+            cd /root/laba4/frontend # Path to your project's frontend directory on the server
             git pull origin main
+
+            # Install dependencies and build the React app ON THE SERVER
+            echo "Installing frontend dependencies on server..."
+            npm install
+            echo "Building frontend project on server..."
+            npm run build
+
+            echo "Building Docker images..."
             docker-compose build
-            docker stop server || true  
-            docker rm server || true    
-            docker-compose down --remove-orphans 
+
+            echo "Stopping and removing old containers (if any)..."
+            docker stop server frontend || true # Stop specific containers if they might have custom names
+            docker rm server frontend || true   # Remove specific containers
+            docker-compose down --remove-orphans
+
+            echo "Starting new containers..."
             docker-compose up -d

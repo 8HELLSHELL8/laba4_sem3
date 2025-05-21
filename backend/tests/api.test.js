@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../app'); 
+const app = require('../Api.js'); 
 
 describe('API Tests', () => {
   test('GET /api/protected should return protected data', async () => {

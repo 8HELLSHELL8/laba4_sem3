@@ -33,7 +33,7 @@ jobs:
       - name: Run tests
         run: |
           cd backend
-          cp .env.example .env # Копируем пример .env файла для тестов
+          cp .env .env 
           npm test
 
       # Шаг 5: Логин в Docker Hub

@@ -3,27 +3,45 @@ name: Deploy Application
 on:
   push:
     branches:
-      - main # Запускать при пуше в ветку main
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Шаг 1: Выгрузка кода из репозитория
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Шаг 2: Развертывание на сервере через SSH
-      - name: Deploy to server
+      - name: Install dependencies and deploy
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST }} # Хост сервера
-          username: ${{ secrets.SSH_USERNAME }} # Имя пользователя
-          key: ${{ secrets.SSH_PRIVATE_KEY }} # Приватный ключ
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /path/to/laba4 # Путь к проекту на сервере
+            # 1. Установка необходимых пакетов
+            sudo apt-get update -y
+            sudo apt-get install -y docker.io docker-compose git
+            
+            # 2. Клонирование репозитория (если не существует)
+            if [ ! -d "/root/laba4" ]; then
+              git clone https://github.com/8HELLSHELL8/laba4_sem3.git /root/laba4
+            fi
+            
+            # 3. Переход в директорию проекта
+            cd /root/laba4
+            
+            # 4. Обновление кода
+            git fetch --all
+            git reset --hard origin/main
             git pull origin main
-            docker-compose down
-            docker-compose pull
+            
+            # 5. Сборка и запуск контейнеров
+            docker-compose down || true  # Игнорировать ошибку если контейнеры не существуют
+            docker-compose build --no-cache
             docker-compose up -d
+            
+            # 6. Проверка работы
+            docker ps
+            echo "Deployment completed successfully!"

@@ -104,7 +104,7 @@ const AuthPage = ({ updateAuthState }) => {
         </form>
 
         <div className="auth-footer">
-          No account? <a> lol go cry then</a>
+          No account? <a href='/auth'> lol go cry then</a>
         </div>
       </div>
     </div>

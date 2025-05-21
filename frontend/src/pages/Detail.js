@@ -48,7 +48,7 @@ const Detail = () => {
             setError("No device ID provided.");
             setIsLoading(false);
         }
-    }, [id]);
+    }, [id, fetchDeviceData]);
 
     const handleDelete = async () => {
         if (window.confirm(`Are you sure you want to delete the device "${deviceData?.name || name}"?`)) {
@@ -87,7 +87,7 @@ const Detail = () => {
 
             const updatedPayload = { name, location };
 
-            const response = await axios.put(`http://localhost:5000/api/items/${id}`, updatedPayload, {
+            await axios.put(`http://localhost:5000/api/items/${id}`, updatedPayload, {
                 withCredentials: true,
                 headers: {
                     'x-csrf-token': csrfToken,

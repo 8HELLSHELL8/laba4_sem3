@@ -128,10 +128,10 @@ describe('API Endpoints', () => {
       expect(res.statusCode).toEqual(200);
       expect(res.body.message).toBe('Logged out successfully');
       expect(res.headers['set-cookie']).toEqual(
-        expect.arrayContaining([
-          expect.stringMatching(/jwt=; Max-Age=0/), // Проверяем удаление cookie
-          expect.stringMatching(/_csrfToken=; Max-Age=0/),
-        ])
+      expect.arrayContaining([
+        expect.stringMatching(/^jwt=;.*Expires=Thu, 01 Jan 1970 00:00:00 GMT/),
+        expect.stringMatching(/^_csrfToken=;.*Expires=Thu, 01 Jan 1970 00:00:00 GMT/),
+      ])
       );
     });
   });

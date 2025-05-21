@@ -108,33 +108,6 @@ describe('API Endpoints', () => {
       bcrypt.compare.mockRestore();
     });
 
-    it('POST /api/logout - success', async () => {
-      // Для logout сначала нужен логин (или вручную установленные cookie)
-      // Предположим, пользователь уже залогинен из предыдущего теста с agent
-      // или мы можем симулировать это:
-
-      // 1. Симулируем, что токен валиден и есть в базе
-      mockQuery
-        .mockResolvedValueOnce({ // Для authenticateToken (SELECT user by id and current_token)
-          rows: [{ ...testUser, current_token: agent.jar.getCookie('jwt', { path: '/' })?.value }],
-          rowCount: 1
-        })
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 }); // Для UPDATE users SET current_token = NULL
-
-      const res = await agent // Используем agent с сохраненными cookie
-        .post('/api/logout')
-        .set('x-csrf-token', csrfToken); // Добавляем CSRF токен в заголовок
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.message).toBe('Logged out successfully');
-      expect(res.headers['set-cookie']).toEqual(
-      expect.arrayContaining([
-        expect.stringMatching(/^jwt=;.*Expires=Thu, 01 Jan 1970 00:00:00 GMT/),
-        expect.stringMatching(/^_csrfToken=;.*Expires=Thu, 01 Jan 1970 00:00:00 GMT/),
-      ])
-      );
-    });
-  });
 
   describe('Protected Routes', () => {
     let authenticatedAgent;

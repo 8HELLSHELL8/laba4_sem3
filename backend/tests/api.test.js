@@ -106,8 +106,7 @@ describe('API Endpoints', () => {
       expect(res.statusCode).toEqual(401);
       expect(res.body.message).toBe('Invalid credentials');
       bcrypt.compare.mockRestore();
-    });
-
+    })});
 
   describe('Protected Routes', () => {
     let authenticatedAgent;

@@ -1,11 +1,15 @@
 const request = require('supertest');
-const app = require('../Api.js'); 
+const { app, server } = require('../Api.js'); 
 
 describe('API Tests', () => {
-  test('GET /api/protected should return protected data', async () => {
+  afterAll(() => {
+    server.close(); 
+  });
+
+  test('GET /api/protected should return 403 without valid token', async () => {
     const res = await request(app)
       .get('/api/protected')
-      .set('Cookie', ['jwt=valid-token']);
+      .set('Cookie', ['jwt=invalid-token']);
 
     expect(res.statusCode).toBe(403);
   });

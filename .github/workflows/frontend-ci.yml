@@ -3,50 +3,45 @@ name: Frontend CI/CD Pipeline
 on:
   push:
     branches:
-      - main # Запускать при пуше в ветку main
+      - main 
   pull_request:
     branches:
-      - main # Запускать при создании Pull Request в ветку main
+      - main 
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Шаг 1: Выгрузка кода из репозитория
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Шаг 2: Установка Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      # Шаг 3: Установка зависимостей
       - name: Install dependencies
         run: |
           cd frontend
           npm install
 
-      # Шаг 4: Сборка React-приложения
       - name: Build project
         run: |
           cd frontend
           npm run build
 
-      # Шаг 5: Отправка кода на сервер и локальная сборка Docker
       - name: Deploy to server and build locally
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST }} # Хост сервера
-          username: ${{ secrets.SSH_USERNAME }} # Имя пользователя
-          key: ${{ secrets.SSH_PRIVATE_KEY }} # Приватный ключ
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }} 
+          key: ${{ secrets.SSH_PRIVATE_KEY }} 
           script: |
-            cd /root/laba4/frontend # Путь к проекту на сервере
+            cd /root/laba4/frontend 
             git pull origin main
             docker-compose build
-            docker stop server || true  # Stop the container named 'server', ignore error if it doesn't exist
-            docker rm server || true    # Remove the container named 'server', ignore error if it doesn't exist
-            docker-compose down --remove-orphans # Ensure all services defined in compose file are down and remove orphans
+            docker stop server || true  
+            docker rm server || true    
+            docker-compose down --remove-orphans 
             docker-compose up -d

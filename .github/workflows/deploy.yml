@@ -1,0 +1,29 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - main # Запускать при пуше в ветку main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Шаг 1: Выгрузка кода из репозитория
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Шаг 2: Развертывание на сервере через SSH
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }} # Хост сервера
+          username: ${{ secrets.SSH_USERNAME }} # Имя пользователя
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # Приватный ключ
+          script: |
+            cd /path/to/laba4 # Путь к проекту на сервере
+            git pull origin main
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d

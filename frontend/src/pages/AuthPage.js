@@ -29,7 +29,7 @@ const AuthPage = ({ updateAuthState }) => {
 
     try {
       const response = await axios.post(
-        'http://217.71.129.139:5733/api/login', 
+        'http://localhost:5000/api/login', 
         { name: username, password },
         {
           withCredentials: true, 

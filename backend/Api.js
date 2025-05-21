@@ -25,10 +25,10 @@ const pool = new Pool({
 
 
 app.use(cors({
-  origin: '*',
-  //origin: ['http://frontend:80', 'http://localhost:3000'],
+  origin: ['http://frontend:80', 'http://localhost:3000', 'http://frontend:3000', 'http://217.64.148.88:80',],
   credentials: true,
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 

@@ -45,7 +45,7 @@ const Home = () => {
           return;
         }
 
-        const response = await axios.get("http://217.71.129.139:5733/api/items", {
+        const response = await axios.get("http://localhost:5000/api/items", {
           withCredentials: true,
           headers: {
             'x-csrf-token': csrfToken, // Добавляем CSRF-токен в заголовки

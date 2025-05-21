@@ -33,7 +33,6 @@ jobs:
       - name: Run tests
         run: |
           cd backend
-          cp .env.example .env # Копируем пример .env файла для тестов
           npm test
 
       # Шаг 5: Отправка кода на сервер и локальная сборка Docker
@@ -44,7 +43,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }} # Имя пользователя
           key: ${{ secrets.SSH_PRIVATE_KEY }} # Приватный ключ
           script: |
-            cd /path/to/laba4 # Путь к проекту на сервере
+            cd /root/laba4 # Путь к проекту на сервере
             git pull origin main
             docker-compose build
             docker-compose down

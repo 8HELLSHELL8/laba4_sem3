@@ -9,7 +9,7 @@ on:
       - main # Запускать при создании Pull Request в ветку main
 
 jobs:
-  build-and-publish:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,19 +35,16 @@ jobs:
           cd frontend
           npm run build
 
-      # Шаг 5: Логин в Docker Hub
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+      # Шаг 5: Отправка кода на сервер и локальная сборка Docker
+      - name: Deploy to server and build locally
+        uses: appleboy/ssh-action@master
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # Шаг 6: Сборка Docker-образа
-      - name: Build Docker image
-        run: |
-          docker build -t your-dockerhub-username/frontend:latest ./frontend
-
-      # Шаг 7: Публикация Docker-образа
-      - name: Push Docker image
-        run: |
-          docker push your-dockerhub-username/frontend:latest
+          host: ${{ secrets.SSH_HOST }} # Хост сервера
+          username: ${{ secrets.SSH_USERNAME }} # Имя пользователя
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # Приватный ключ
+          script: |
+            cd /root/laba4/frontend # Путь к проекту на сервере
+            git pull origin main
+            docker-compose build
+            docker-compose down
+            docker-compose up -d

@@ -353,6 +353,14 @@ app.delete('/api/items/:id', authenticateToken, verifyCsrfToken, async (req, res
 });
 
 
-app.listen(port, () => {
-  console.log(`HTTP Server is running on http://localhost:${port}`);
+const server = app.listen(port, () => {
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(`HTTP Server is running on http://localhost:${port}`);
+  }
 });
+
+module.exports = { 
+  app,
+  server,
+  close: () => server.close()
+};

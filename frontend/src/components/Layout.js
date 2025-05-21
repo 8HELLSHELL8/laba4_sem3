@@ -40,7 +40,7 @@ const Layout = () => {
         return;
       }
 
-      const response = await axios.get('http://localhost:5000/api/protected', {
+      const response = await axios.get('http://217.71.129.139:5733/api/protected', {
         withCredentials: true,
         headers: {
           'x-csrf-token': csrfToken, 
@@ -73,7 +73,7 @@ const Layout = () => {
         return;
       }
 
-      await axios.post('http://localhost:5000/api/logout', {}, {
+      await axios.post('http://217.71.129.139:5733/api/logout', {}, {
         withCredentials: true,
         headers: {
           'x-csrf-token': csrfToken, 

@@ -44,7 +44,7 @@ const Form = () => {
     };
 
     try {
-      await axios.post('http://localhost:5000/api/items', deviceData, {
+      await axios.post('http://217.71.129.139:5733/api/items', deviceData, {
         withCredentials: true, 
         headers: {
           'x-csrf-token': csrfToken, 

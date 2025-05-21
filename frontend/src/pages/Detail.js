@@ -23,7 +23,7 @@ const Detail = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await axios.get(`http://localhost:5000/api/items/${id}`, {
+            const response = await axios.get(`http://217.71.129.139:5733/api/items/${id}`, {
                 withCredentials: true,
             });
             setDeviceData(response.data);
@@ -59,7 +59,7 @@ const Detail = () => {
                     return;
                 }
 
-                await axios.delete(`http://localhost:5000/api/items/${id}`, {
+                await axios.delete(`http://217.71.129.139:5733/api/items/${id}`, {
                     withCredentials: true,
                     headers: {
                         'x-csrf-token': csrfToken,
@@ -87,7 +87,7 @@ const Detail = () => {
 
             const updatedPayload = { name, location };
 
-            await axios.put(`http://localhost:5000/api/items/${id}`, updatedPayload, {
+            await axios.put(`http://217.71.129.139:5733/api/items/${id}`, updatedPayload, {
                 withCredentials: true,
                 headers: {
                     'x-csrf-token': csrfToken,

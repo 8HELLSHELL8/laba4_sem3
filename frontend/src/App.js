@@ -31,7 +31,7 @@ function App() {
     const checkInitialAuth = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('http://localhost:5000/api/protected', {
+        const response = await axios.get('http://217.71.129.139:5733/api/protected', {
           withCredentials: true,
         });
         console.log("User is authenticated:", response.data);

@@ -28,7 +28,7 @@ const Profile = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:5000/api/protected', {
+        const response = await axios.get('http://217.71.129.139:5733/api/protected', {
           withCredentials: true,
           headers: {
             'x-csrf-token': csrfToken, 

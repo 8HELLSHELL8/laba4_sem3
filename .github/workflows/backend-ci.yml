@@ -32,8 +32,7 @@ jobs:
       # Шаг 4: Запуск тестов
       - name: Run tests
         run: |
-          cd backend
-          cp .env .env 
+          cd backend 
           npm test
 
       # Шаг 5: Логин в Docker Hub

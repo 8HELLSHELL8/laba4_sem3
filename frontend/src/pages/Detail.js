@@ -19,9 +19,7 @@ const Detail = () => {
     const [error, setError] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
 
-    /* eslint-enable react-hooks/exhaustive-deps */
-
-    const fetchDeviceData = async () => {
+    const fetchDeviceData = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
@@ -41,7 +39,7 @@ const Detail = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [id]); 
 
     useEffect(() => {
         if (id) {
@@ -50,9 +48,7 @@ const Detail = () => {
             setError("No device ID provided.");
             setIsLoading(false);
         }
-    }, [id, fetchDeviceData]);
-
-    /* eslint-enable react-hooks/exhaustive-deps */
+    }, [id, fetchDeviceData]); 
 
     const handleDelete = async () => {
         if (window.confirm(`Are you sure you want to delete the device "${deviceData?.name || name}"?`)) {
